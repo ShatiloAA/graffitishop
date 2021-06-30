@@ -1,0 +1,20 @@
+### Get request with a header
+GET http://localhost:8080/graffitishop/orders
+Accept: application/json
+
+###
+DELETE http://localhost:8080/graffitishop/orders/33
+Accept: application/json
+
+###
+POST http://localhost:8080/graffitishop/orders
+Accept: application/json
+{
+"userId":2,
+"items":[{"id":4,"quantity":1,"itemId":5},{"id":5,"quantity":1,"itemId":6},{"id":6,"quantity":1,"itemId":8}]
+}
+
+###
+POST http://localhost:8080/graffitishop/orders/
+Accept: application/json
+{"id":2,"userId":2,"items":[{"id":4,"quantity":1,"itemId":5},{"id":5,"quantity":1,"itemId":6},{"id":6,"quantity":1,"itemId":8}]}
