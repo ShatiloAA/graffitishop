@@ -2,13 +2,10 @@ package com.graffiti.shop.controller;
 
 import com.graffiti.shop.domain.Order;
 import com.graffiti.shop.domain.OrderItem;
-import com.graffiti.shop.domain.dto.OrderRequest;
-import com.graffiti.shop.domain.dto.OrderResponse;
+import com.graffiti.shop.domain.dto.OrderDTO;
+import com.graffiti.shop.kafka.ProducerService;
 import com.graffiti.shop.service.OrderItemService;
 import com.graffiti.shop.service.OrderService;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +21,11 @@ public class OrderController {
     @Autowired
     private OrderItemService orderItemService;
 
+    @Autowired
+    private ProducerService producerService;
+
     @GetMapping("/orders")
-    public List<Order> showAllOrders(){
+    public List<Order> showAllOrders() {
         return orderService.getAllOrders();
     }
 
@@ -36,29 +36,31 @@ public class OrderController {
     }
 
     @PostMapping("/orders")
-    public OrderResponse addNewOrder(@RequestBody OrderRequest orderRequest) {
+    public OrderDTO addNewOrder(@RequestBody OrderDTO orderDTO) {
         Order order = new Order();
-        order.setCustomerId(orderRequest.getCustomerId());
+        order.setCustomerId(orderDTO.getCustomerId());
         order = orderService.saveOrder(order);
         int orderId = order.getId();
-        for (OrderItem item : orderRequest.getItems()) {
+        for (OrderItem item : orderDTO.getItems()) {
             item.setOrderId(orderId);
             orderItemService.saveOrderItem(item);
         }
-        return new OrderResponse(orderId, order.getCustomerId(),
+        orderDTO = new OrderDTO(orderId, order.getCustomerId(),
                 orderItemService.getAllByOrderId(orderId));
+        producerService.produce(orderDTO);
+        return orderDTO;
     }
 
     @PutMapping("/orders")
 
-    public OrderResponse updateOrder(@RequestBody OrderRequest orderRequest){
-        int orderId = orderRequest.getOrderId();
+    public OrderDTO updateOrder(@RequestBody OrderDTO orderDTO) {
+        int orderId = orderDTO.getOrderId();
         orderItemService.deleteOrderItemByOrderId(orderId);
-        for (OrderItem item : orderRequest.getItems()) {
+        for (OrderItem item : orderDTO.getItems()) {
             item.setOrderId(orderId);
             orderItemService.saveOrderItem(item);
         }
-        return new OrderResponse(orderId, orderRequest.getCustomerId(),
+        return new OrderDTO(orderId, orderDTO.getCustomerId(),
                 orderItemService.getAllByOrderId(orderId));
     }
 

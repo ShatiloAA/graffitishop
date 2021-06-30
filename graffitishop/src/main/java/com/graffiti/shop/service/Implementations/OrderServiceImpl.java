@@ -4,6 +4,7 @@ import com.graffiti.shop.domain.Order;
 import com.graffiti.shop.exceptions.NotFoundException;
 import com.graffiti.shop.repository.OrderRepository;
 import com.graffiti.shop.service.OrderService;
+import io.micrometer.core.annotation.Counted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Counted(value = "save.Order.count",
+            description = "Total number of requests of calls saveOrder")
     public Order saveOrder(Order order) {
+
         logger.info("saveOrder() entered with Entity = " + order.toString());
         try {
             order = orderRepository.save(order);
